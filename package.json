@@ -1,5 +1,5 @@
 {
-  "name": "@ticketplushq/plugin-multi-region",
+  "name": "@ticketplushq/arc-plugin-multi-region",
   "version": "0.0.0",
   "description": "Architect plugin for deploy to multiple regions",
   "main": "src/index.js",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ticketplushq/plugin-multi-region.git"
+    "url": "git+https://github.com/ticketplushq/arc-plugin-multi-region.git"
   },
   "license": "Apache-2.0",
   "dependencies": {
