@@ -1,0 +1,36 @@
+{
+  "name": "@ticketplushq/plugin-multi-region",
+  "version": "0.0.0",
+  "description": "Architect plugin for deploy to multiple regions",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "npm run lint && npm run coverage",
+    "test:unit": "cross-env tape 'test/unit/**/*-test.js' | tap-spec",
+    "coverage": "nyc --reporter=lcov --reporter=text npm run test:unit",
+    "lint": "eslint . --fix",
+    "rc": "npm version prerelease --preid RC"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ticketplushq/plugin-multi-region.git"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@architect/package": "^7.2.0",
+    "@architect/utils": "^3.0.4"
+  },
+  "devDependencies": {
+    "@architect/eslint-config": "^2.0.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.9.0",
+    "nyc": "^15.1.0",
+    "tap-spec": "^5.0.0",
+    "tape": "^5.5.2"
+  },
+  "eslintConfig": {
+    "extends": "@architect/eslint-config"
+  }
+}
