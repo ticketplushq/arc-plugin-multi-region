@@ -1,6 +1,6 @@
 {
   "name": "@ticketplushq/arc-plugin-multi-region",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Architect plugin for deploy to multiple regions",
   "main": "src/index.js",
   "scripts": {
