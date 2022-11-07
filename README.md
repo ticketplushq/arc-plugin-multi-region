@@ -35,7 +35,7 @@ The `@arc-plugin-multi-region` allows to deploy Architect projects on multi regi
 
 ### Example
 
-In the following example we have an Architect app (`my-app`) wich is currently deployed on `us-west-1` region, and we whant to replicate the app in `us-west-2` and `us-east-1` regions.
+In the following example we have an Architect app (`my-app`) wich is currently deployed on `us-west-1` region, and we whant to replicate the app in `us-west-2` and `us-east-2` regions.
 
 ```arc
 @app
