@@ -7,7 +7,7 @@ let getReplicatedTables = require('./_get-replicated-tables')
 module.exports = {
   deploy: {
     start: async ({ arc, cloudformation, stage, dryRun }) => {
-      const multiRegion = arc['arc-plugin-multi-region']
+      const multiRegion = arc['multi-region']
       if (!multiRegion) return cloudformation
 
       const { primaryRegion, replicaRegions } = getMultiRegionOptions(multiRegion)
@@ -64,7 +64,7 @@ module.exports = {
       return cloudformation
     },
     end: async ({ arc, cloudformation, stage, dryRun }) => {
-      const multiRegion = arc['arc-plugin-multi-region']
+      const multiRegion = arc['multi-region']
       if (!multiRegion) return cloudformation
 
       const { primaryRegion, replicaRegions } = getMultiRegionOptions(multiRegion)
