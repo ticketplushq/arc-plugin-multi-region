@@ -55,7 +55,9 @@ replicas                  # additional regions where you want to deploy you Arch
 
 In order to deploy this app to multiple regions (us-west-1, us-west-2, and us-east-2, according to the example) we need to follow this instructions.
 
-1. Deploy your Architect app normally
+1. Always use the `--dry-run` flag, to test this before deploy everything to the real world.
+  * You will be see some warnings, due to the nature of a dry run execution.
+2. Deploy your Architect app normally
   * After a successful deployment, will start replicating the tables in the configured regions (`us-west-2` and `us-east-2`).
   * Take a look at the console, and you will see a summary of the operation performed.
   ```
@@ -66,7 +68,7 @@ In order to deploy this app to multiple regions (us-west-1, us-west-2, and us-ea
   ✓ MultiRegion Replication updated for table users
   ✓ MultiRegion Replication updated in 10.944 seconds
   ```
-2. Change the `region` value on `@aws` at your `app.arc` file, to one of the replica regions (`us-west-2` or `us-east-2`)
+3. Change the `region` value on `@aws` at your `app.arc` file, to one of the replica regions (`us-west-2` or `us-east-2`)
   * Before start the deployment, will start to fetching the replicated tables on the replica region, and ignoring the corresponding table that Architect try to create naturally.
   * Take a look at the console, and you will see a summary of the operation performed.
   ```
@@ -74,6 +76,12 @@ In order to deploy this app to multiple regions (us-west-1, us-west-2, and us-ea
   ⚬ MultiRegion Fetched replica tables in the replica region (us-west-2)
     | users
   ```
-3. Repeat the step two for each replica region.
+4. Repeat the step two for each replica region.
 
 As a result of the above you will have 2 or more api endpoints, to balance in case of failure in a region.
+
+### Some considerations
+
+* By default, architect don't delete your tables, so if you remove a table from app.arc, you must to manually remove each replica and the table itself.
+* The indexes are replicated without problem, so don't concern about it.
+* There is many behaviors related to events, queues and crons that you should be considering before to move to a multi region architecture.
