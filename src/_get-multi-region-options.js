@@ -4,16 +4,18 @@ module.exports = (multiRegion) => {
   }
 
   let primaryRegion
-  if (Array.isArray(multiRegion[0]) && multiRegion[0][0] == 'primary') {
-    primaryRegion = multiRegion[0][1]
+  const primaryRegionIndex = multiRegion.findIndex((param) => Array.isArray(param) && param[0] == 'primary')
+  if (primaryRegionIndex >= 0) {
+    primaryRegion = multiRegion[primaryRegionIndex][1]
   }
   else {
     throw ReferenceError('Invalid multi region params: Missing primary region')
   }
 
   let replicaRegions
-  if (multiRegion[1] !== undefined && Array.isArray(multiRegion[1].replicas)) {
-    replicaRegions = multiRegion[1].replicas
+  const replicasIndex = multiRegion.findIndex((param) => param.replicas)
+  if (replicasIndex >= 0 && Array.isArray(multiRegion[replicasIndex].replicas)) {
+    replicaRegions = multiRegion[replicasIndex].replicas
   }
   else {
     throw ReferenceError('Invalid multi region params: Missing replica regions')
