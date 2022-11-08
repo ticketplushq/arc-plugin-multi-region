@@ -5,7 +5,7 @@ let { updater } = require('@architect/utils')
 
 module.exports = async (arc, stage, dryRun, appName, primaryRegion, currentRegion) => {
   const update = updater('MultiRegion')
-  update.start(`Fetching replicated tables in the replica region (${currentRegion})...`)
+  update.start(`Fetching replica tables in the replica region (${currentRegion})...`)
 
   let dynamoReplica = new aws.DynamoDB({ region: currentRegion }) // The current region is a replica region
   let ssmPrimary = new aws.SSM({ region: primaryRegion })
@@ -58,7 +58,9 @@ module.exports = async (arc, stage, dryRun, appName, primaryRegion, currentRegio
     }
   }
 
-  update.done(`Replicated tables in replica region fetched`, tableNames)
+  update.done(`Replica tables in the replica region (${currentRegion}) fetched`)
+
+  update.status(`Fetched replica tables in the replica region (${currentRegion})`, tableNames)
 
   return tables
 }
