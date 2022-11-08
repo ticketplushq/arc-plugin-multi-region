@@ -29,7 +29,7 @@ The `@multi-region` allows to deploy Architect projects on multi regions using D
 
 ### Example
 
-In the following example we have an Architect app (`my-app`) wich is currently deployed on `us-west-1` region, and we want to replicate the app in `us-west-2` and `us-east-2` regions.
+In the following example we have an Architect app (`my-app`) which is currently deployed on `us-west-1` region, and we want to replicate the app in `us-west-2` and `us-east-2` regions.
 
 ```arc
 @app
@@ -53,10 +53,10 @@ replicas                  # additional regions where you want to deploy you Arch
   us-east-2
 ```
 
-In order to deploy this app to multiple regions (us-west-1, us-west-2, and us-east-2, acording to the example) we need to follow this instructions.
+In order to deploy this app to multiple regions (us-west-1, us-west-2, and us-east-2, according to the example) we need to follow this instructions.
 
-1. Deploy your Architect app normaly
-  * After a successfull deployment, will start replicating the tables in the configured regions (`us-west-2` and `us-east-2`).
+1. Deploy your Architect app normally
+  * After a successful deployment, will start replicating the tables in the configured regions (`us-west-2` and `us-east-2`).
   * Take a look at the console, and you will see a summary of the operation performed.
   ```
   ⚬ MultiRegion Updating replication on primary region us-west-1
