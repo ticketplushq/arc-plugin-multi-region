@@ -4,8 +4,7 @@
 
 # @ticketplushq/arc-plugin-multi-region
 
-Allows to deploy Architect projects on multi regions using DynamoDB Global Tables
-
+Allows to deploy Architect projects on multi regions using [Global Tables](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html).
 
 ## Install
 
@@ -16,26 +15,21 @@ Add this line to your Architect project manifest:
 ```arc
 # app.arc
 @plugins
-arc-plugin-multi-region
+ticketplushq/arc-plugin-multi-region
 ```
 
-Then follow the directions below for `@arc-plugin-multi-region`.
+Then follow the directions below for `@multi-region`.
 
-> Note: this plugin currently only supports enabling access to tables that previously global tables. For example: if your app is in `us-west-1`, this plugin will not enable access to external tables in `us-east-1` unless you active the replication of each table for `us-east-1`.
+## `@multi-region`
 
----
-
-## `@arc-plugin-multi-region`
-
-The `@arc-plugin-multi-region` allows to deploy Architect projects on multi regions using DynamoDB Global Tables.
+The `@multi-region` allows to deploy Architect projects on multi regions using DynamoDB Global Tables.
 
 - The `primary` entry define the aws main region of your application. The region where you app is currently running.
-
 - The `replicas` entry is an array of aws regions where you plan to deploy your application.
 
 ### Example
 
-In the following example we have an Architect app (`my-app`) wich is currently deployed on `us-west-1` region, and we whant to replicate the app in `us-west-2` and `us-east-2` regions.
+In the following example we have an Architect app (`my-app`) wich is currently deployed on `us-west-1` region, and we want to replicate the app in `us-west-2` and `us-east-2` regions.
 
 ```arc
 @app
@@ -46,28 +40,40 @@ profile default
 region us-west-1          # region where you want to deploy this Architect app
 
 @plugins
-arc-plugin-multi-region
+ticketplushq/arc-plugin-multi-region
 
 @tables                   # tables managed by this Architect app
 users
   id *String
 
-@arc-plugin-multi-region
+@multi-region
 primary us-west-1         # region where you app is currently running
 replicas                  # additional regions where you want to deploy you Architect app
   us-west-2
   us-east-2
 ```
 
-If we deploy this app.arc nothing would be happen, due to the current `region` in `@aws` has the same value as `primary` in `@arc-plugin-multi-region`. If we change the `region` on `@aws`, to deploy to one of the `replicas` regions, will be validate if all tables are already replicated on that region and init the deployment.
+In order to deploy this app to multiple regions (us-west-1, us-west-2, and us-east-2, acording to the example) we need to follow this instructions.
 
-### Global Table
+1. Deploy your Architect app normaly
+  * After a successfull deployment, will start replicating the tables in the configured regions (`us-west-2` and `us-east-2`).
+  * Take a look at the console, and you will see a summary of the operation performed.
+  ```
+  ⚬ MultiRegion Updating replication on primary region us-west-1
+  ⚬ MultiRegion Initializing replication for table users
+    | Creating replication on regions ... us-west-2, us-east-2
+    | Deleting replication on regions ... (skipped)
+  ✓ MultiRegion Replication updated for table users
+  ✓ MultiRegion Replication updated in 10.944 seconds
+  ```
+2. Change the `region` value on `@aws` at your `app.arc` file, to one of the replica regions (`us-west-2` or `us-east-2`)
+  * Before start the deployment, will start to fetching the replicated tables on the replica region, and ignoring the corresponding table that Architect try to create naturally.
+  * Take a look at the console, and you will see a summary of the operation performed.
+  ```
+  ✓ MultiRegion Replica tables in the replica region (us-west-2) fetched
+  ⚬ MultiRegion Fetched replica tables in the replica region (us-west-2)
+    | users
+  ```
+3. Repeat the step two for each replica region.
 
-[Global Table is a feature of DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html) that allows you to replicate DynamoDB tables across multiple regions.
-
-This plugin does not have the ability to enable existing tables in multiple regions. However, you can do it yourself using the AWS console interface.
-
-1. Go to each table that you have, an create a new replica for each one (Replicas are on Global tables tab).
-2. Select the target region where do you want to replicate the Architect project.
-
-Replication can take several minutes, depending on the size of the tables.
+As a result of the above you will have 2 or more api endpoints, to balance in case of failure in a region.
