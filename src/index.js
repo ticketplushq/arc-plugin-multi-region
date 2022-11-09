@@ -124,4 +124,18 @@ module.exports = {
       return cloudformation
     }
   },
+  set: {
+    env: (arc) => {
+      const multiRegion = arc['multi-region']
+      if (!multiRegion) return { ARC_MULTI_REGION: false }
+
+      const { primaryRegion } = getMultiRegionOptions(arc)
+      const { currentRegion } = getArcOptions(arc)
+
+      return {
+        ARC_MULTI_REGION_PRIMARY: primaryRegion,
+        ARC_MULTI_REGION_CURRENT: currentRegion
+      }
+    }
+  }
 }
