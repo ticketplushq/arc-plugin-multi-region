@@ -3,15 +3,17 @@ let getMultiRegionOptions = require('./_get-multi-region-options')
 let getArcOptions = require('./_get-arc-options')
 let updateReplication = require('./_update_replication')
 let getReplicatedTables = require('./_get-replicated-tables')
+let getBuckets = require('./_get-buckets')
 
 module.exports = {
   deploy: {
     start: async ({ arc, cloudformation, stage, dryRun }) => {
+      const cfn = cloudformation
       const multiRegion = arc['multi-region']
-      if (!multiRegion) return cloudformation
+      if (!multiRegion) return cfn
 
-      const { primaryRegion, replicaRegions } = getMultiRegionOptions(multiRegion)
-      const { appName, currentRegion } = getArcOptions(arc)
+      const { primaryRegion, replicaRegions } = getMultiRegionOptions(arc)
+      const { currentRegion } = getArcOptions(arc)
 
       if (primaryRegion == currentRegion) return
 
@@ -19,32 +21,30 @@ module.exports = {
         throw Error(`The following region is not included in replica regions: ${currentRegion}`)
       }
 
-      let tables = await getReplicatedTables(arc, stage, dryRun, appName, primaryRegion, currentRegion)
-      let index = cloudformation.Resources.Role.Properties.Policies
+      const tables = await getReplicatedTables(arc, stage, dryRun)
+      let dynamoPolicyIndex = cfn.Resources.Role.Properties.Policies
         .findIndex(item => item.PolicyName === 'ArcDynamoPolicy')
-
-      // Delete old DynamoDB Policies
-      cloudformation.Resources.Role.Properties
-        .Policies[index].PolicyDocument.Statement[0].Resource = []
+      let dynamoPolicyDoc = cfn.Resources.Role.Properties.Policies[dynamoPolicyIndex]
+        .PolicyDocument.Statement[0]
 
       tables.forEach(({ arn, logicalName, physicalName }) => {
+        const ID = toLogicalID(logicalName)
         // Delete old DynamoDB Tables
-        let originalResourceTableName = `${toLogicalID(logicalName)}Table`
-        delete cloudformation.Resources[originalResourceTableName]
+        const originalResourceName = `${ID}Table`
+        delete cfn.Resources[originalResourceName]
         // Delete old SSM Parameters
-        let originalResourceParamName = `${toLogicalID(logicalName)}Param`
-        delete cloudformation.Resources[originalResourceParamName]
+        const originalResourceParamName = `${ID}Param`
+        delete cfn.Resources[originalResourceParamName]
+        // Delete old DynamoDB Policies
+        dynamoPolicyDoc.Resource = dynamoPolicyDoc.Resource.filter((resource) => {
+          return !resource['Fn::Sub'] || resource['Fn::Sub'][1].tablename.Ref != originalResourceName
+        })
 
         // Add new DynamoDB Policies
-        cloudformation.Resources.Role.Properties
-          .Policies[index].PolicyDocument.Statement[0].Resource.push(
-            arn,
-            `${arn}/*`,
-            `${arn}/stream/*`,
-          )
+        dynamoPolicyDoc.Resource.push(arn, `${arn}/*`, `${arn}/stream/*`)
         // Add new SSM Parameter for Global Table
-        let resourceName = `${toLogicalID(logicalName)}GlobalTableParam`
-        cloudformation.Resources[resourceName] = {
+        let resourceName = `${ID}GlobalTableParam`
+        cfn.Resources[resourceName] = {
           Type: 'AWS::SSM::Parameter',
           Properties: {
             Type: 'String',
@@ -61,20 +61,65 @@ module.exports = {
         }
       })
 
-      return cloudformation
+      const buckets = await getBuckets(arc, stage, dryRun)
+
+      buckets.forEach(({ arn, logicalName, physicalName, privacy }) => {
+        const bucketPolicyDoc = cfn.Resources[
+          `P${privacy.slice(1)}StorageMacroPolicy`
+        ].Properties.PolicyDocument.Statement[0]
+        const ID = toLogicalID(logicalName)
+        // Delete old Bucket
+        const originalResourceName = `${ID}Bucket`
+        delete cfn.Resources[originalResourceName]
+        // Delete old SSM Parameters
+        const originalResourceParamName = `${ID}Param`
+        delete cfn.Resources[originalResourceParamName]
+        // Delete old Bucket Policies
+        bucketPolicyDoc.Resource = bucketPolicyDoc.Resource.filter((resource) => {
+          return !resource['Fn::Sub'] || resource['Fn::Sub'][1].bucket.Ref != originalResourceName
+        })
+
+        // Add IAM policy for least-priv runtime access
+        bucketPolicyDoc.Resource.push(arn, `${arn}/*`)
+        // Add new SSM Parameter for runtime discovery
+        let resourceName = `${ID}BucketParam`
+        cfn.Resources[resourceName] = {
+          Type: 'AWS::SSM::Parameter',
+          Properties: {
+            Type: 'String',
+            Name: {
+              'Fn::Sub': [
+                '/${AWS::StackName}/storage-${privacy}/${bucketname}',
+                {
+                  bucketname: logicalName,
+                  privacy
+                }
+              ]
+            },
+            Value: physicalName
+          }
+        }
+        // Replace bucket env var on all Lambda functions
+        Object.keys(cfn.Resources).forEach((k) => {
+          let BUCKET = `ARC_STORAGE_PUBLIC_${logicalName.replace(/-/g, '_').toUpperCase()}`
+          if (cfn.Resources[k].Type === 'AWS::Serverless::Function') {
+            cfn.Resources[k].Properties.Environment.Variables[BUCKET] = physicalName
+          }
+        })
+      })
+
+      return cfn
     },
     end: async ({ arc, cloudformation, stage, dryRun }) => {
       const multiRegion = arc['multi-region']
       if (!multiRegion) return cloudformation
 
-      const { primaryRegion, replicaRegions } = getMultiRegionOptions(multiRegion)
-      const { appName, currentRegion } = getArcOptions(arc)
+      const { primaryRegion } = getMultiRegionOptions(arc)
+      const { currentRegion } = getArcOptions(arc)
 
       if (primaryRegion != currentRegion) return
 
-      await updateReplication(
-        arc, stage, dryRun, appName, primaryRegion, replicaRegions, currentRegion
-      )
+      await updateReplication(arc, stage, dryRun)
 
       return cloudformation
     }

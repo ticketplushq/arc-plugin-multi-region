@@ -2,12 +2,17 @@
 let aws = require('aws-sdk') // Assume AWS-SDK is installed via Arc
 let { toLogicalID } = require('@architect/utils')
 let { updater } = require('@architect/utils')
+let getMultiRegionOptions = require('./_get-multi-region-options')
+let getArcOptions = require('./_get-arc-options')
 
-module.exports = async (arc, stage, dryRun, appName, primaryRegion, currentRegion) => {
+module.exports = async (arc, stage, dryRun) => {
+  const { primaryRegion } = getMultiRegionOptions(arc)
+  const { appName, currentRegion } = getArcOptions(arc)
+
   const update = updater('MultiRegion')
   update.start(`Fetching replica tables in the replica region (${currentRegion})...`)
 
-  let dynamoReplica = new aws.DynamoDB({ region: currentRegion }) // The current region is a replica region
+  let dynamoReplica = new aws.DynamoDB({ region: currentRegion })
   let ssmPrimary = new aws.SSM({ region: primaryRegion })
 
   let tableNames = []

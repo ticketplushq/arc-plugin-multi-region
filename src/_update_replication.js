@@ -2,8 +2,13 @@
 let aws = require('aws-sdk') // Assume AWS-SDK is installed via Arc
 let { toLogicalID } = require('@architect/utils')
 let { updater } = require('@architect/utils')
+let getMultiRegionOptions = require('./_get-multi-region-options')
+let getArcOptions = require('./_get-arc-options')
 
-module.exports = async (arc, stage, dryRun, appName, primaryRegion, replicaRegions, currentRegion) => {
+module.exports = async (arc, stage, dryRun) => {
+  const { primaryRegion, replicaRegions } = getMultiRegionOptions(arc)
+  const { appName, currentRegion } = getArcOptions(arc)
+
   const update = updater('MultiRegion')
   const start = Date.now()
   const done = () => update.done(`Replication updated in ${(Date.now() - start) / 1000} seconds`)

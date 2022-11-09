@@ -1,4 +1,5 @@
-module.exports = (multiRegion) => {
+module.exports = (arc) => {
+  const multiRegion = arc['multi-region']
   if (!Array.isArray(multiRegion)) {
     throw ReferenceError('Invalid multi region params')
   }
@@ -21,5 +22,17 @@ module.exports = (multiRegion) => {
     throw ReferenceError('Invalid multi region params: Missing replica regions')
   }
 
-  return { primaryRegion, replicaRegions }
+  let bucketNames = { public: [], private: [] };
+  [ 'public', 'private' ].forEach((privacy) => {
+    if (arc[`storage-${privacy}`]) {
+      bucketNames[privacy] = bucketNames[privacy].concat(arc[`storage-${privacy}`])
+    }
+  })
+  const skipBucketsIndex = multiRegion.findIndex((param) => param['skip-buckets'])
+  if (skipBucketsIndex >= 0 && Array.isArray(multiRegion[skipBucketsIndex]['skip-buckets'])) {
+    bucketNames.public = bucketNames.public - multiRegion[skipBucketsIndex]['skip-buckets']
+    bucketNames.private = bucketNames.private - multiRegion[skipBucketsIndex]['skip-buckets']
+  }
+
+  return { primaryRegion, replicaRegions, bucketNames }
 }
