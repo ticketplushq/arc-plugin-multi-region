@@ -125,7 +125,7 @@ module.exports = {
     }
   },
   set: {
-    env: (arc) => {
+    env: ({ arc }) => {
       const multiRegion = arc['multi-region']
       if (!multiRegion) return { ARC_MULTI_REGION: false }
 
