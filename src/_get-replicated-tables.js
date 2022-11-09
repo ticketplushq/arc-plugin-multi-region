@@ -6,7 +6,7 @@ let getMultiRegionOptions = require('./_get-multi-region-options')
 let getArcOptions = require('./_get-arc-options')
 
 module.exports = async (arc, stage, dryRun) => {
-  const { primaryRegion } = getMultiRegionOptions(arc)
+  const { primaryRegion, skipTables } = getMultiRegionOptions(arc)
   const { appName, currentRegion } = getArcOptions(arc)
 
   const update = updater('MultiRegion')
@@ -17,7 +17,9 @@ module.exports = async (arc, stage, dryRun) => {
 
   let tableNames = []
   arc.tables.forEach((table) => {
-    tableNames = tableNames.concat(Object.keys(table))
+    tableNames = tableNames.concat(
+      Object.keys(table).filter((tableName) => !skipTables.includes(tableName))
+    )
   })
 
   let tables = []

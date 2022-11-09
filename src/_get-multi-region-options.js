@@ -34,5 +34,11 @@ module.exports = (arc) => {
     bucketNames.private = bucketNames.private - multiRegion[skipBucketsIndex]['skip-buckets']
   }
 
-  return { primaryRegion, replicaRegions, bucketNames }
+  let skipTables = []
+  const skipTablesIndex = multiRegion.findIndex((param) => param['skip-tables'])
+  if (skipTablesIndex >= 0 && Array.isArray(multiRegion[skipTablesIndex]['skip-tables'])) {
+    skipTables = multiRegion[skipTablesIndex]['skip-tables']
+  }
+
+  return { primaryRegion, replicaRegions, bucketNames, skipTables }
 }
