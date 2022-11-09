@@ -67,13 +67,15 @@ module.exports = async (arc, stage, dryRun) => {
               ReplicaUpdates: [ replicateUpdate ]
             }).promise()
 
-            do { // Wait to avoid errors with busy tables
-              await new Promise(r => setTimeout(r, 5000));
-              ({ Table } = await dynamoPrimary.describeTable({ TableName: PhysicalTableName }).promise())
-            } while (
-              !Table.Replicas ||
-              Table.Replicas.findIndex((replica) => [ 'CREATING', 'UPDATING', 'DELETING' ].includes(replica.ReplicaStatus)) >= 0
-            )
+            if (replicateUpdates.length > 1) {
+              do { // Wait to avoid errors with busy table
+                await new Promise(r => setTimeout(r, 5000));
+                ({ Table } = await dynamoPrimary.describeTable({ TableName: PhysicalTableName }).promise())
+              } while (
+                !Table.Replicas ||
+                Table.Replicas.findIndex((replica) => [ 'CREATING', 'UPDATING', 'DELETING' ].includes(replica.ReplicaStatus)) >= 0
+              )
+            }
           }
         }
         catch (error) {
