@@ -26,6 +26,14 @@ The `@multi-region` allows to deploy Architect projects on multi regions using D
 
 - The `primary` entry define the aws main region of your application. The region where you app is currently running.
 - The `replicas` entry is an array of aws regions where you plan to deploy your application.
+- The `skip-buckets` entry is an array of buckets, with the strategy specification.
+  * This feature is only compatible with `@architect/plugin-storage-public` and `@architect/plugin-storage-private` plugins.
+  * This entry is optional. By default, this plugin reference all buckets inside your project from the original region.
+  * If there are any tables that you are not interested in reference the bucket, you can add it here.
+- The `skip-tables` entry is an array of architect tables that you want or don't want to replicate.
+  * This entry is optional. By default, this plugin replicates all tables inside your project.
+  * Replicating data can be expensive. If there are any tables that you are not interested in replicating, you can add it here.
+    We'll let architect create it, and it's up to you whether to use it or not.
 
 ### Example
 
