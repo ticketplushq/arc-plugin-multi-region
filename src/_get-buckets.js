@@ -50,7 +50,7 @@ module.exports = async (arc, stage, dryRun) => {
 
   update.done(`Buckets fetched (${currentRegion})`)
 
-  update.status(`Fetched buckets in (${currentRegion})`, buckets.map((bucket) => {
+  update.status(`Fetched buckets in (${currentRegion})`, ...buckets.map((bucket) => {
     return `${bucket.privacy} ${bucket.privacy == 'public' ? '...' : '..'} ${bucket.logicalName}`
   }))
 

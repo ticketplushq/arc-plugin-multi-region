@@ -67,7 +67,7 @@ module.exports = async (arc, stage, dryRun) => {
 
   update.done(`Replica tables in the replica region (${currentRegion}) fetched`)
 
-  update.status(`Fetched replica tables in the replica region (${currentRegion})`, tableNames)
+  update.status(`Fetched replica tables in the replica region (${currentRegion})`, ...tableNames)
 
   return tables
 }
