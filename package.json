@@ -19,7 +19,6 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@architect/package": "^7.2.0",
     "@architect/utils": "^3.0.4"
   },
   "devDependencies": {
