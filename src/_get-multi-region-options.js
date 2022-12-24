@@ -30,8 +30,8 @@ module.exports = (arc) => {
   })
   const skipBucketsIndex = multiRegion.findIndex((param) => param['skip-buckets'])
   if (skipBucketsIndex >= 0 && Array.isArray(multiRegion[skipBucketsIndex]['skip-buckets'])) {
-    bucketNames.public = bucketNames.public - multiRegion[skipBucketsIndex]['skip-buckets']
-    bucketNames.private = bucketNames.private - multiRegion[skipBucketsIndex]['skip-buckets']
+    bucketNames.public = bucketNames.public.filter((bucketName) => !multiRegion[skipBucketsIndex]['skip-buckets'].includes(bucketName))
+    bucketNames.private = bucketNames.private.filter((bucketName) => !multiRegion[skipBucketsIndex]['skip-buckets'].includes(bucketName))
   }
 
   let skipTables = []
