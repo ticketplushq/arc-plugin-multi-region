@@ -1,3 +1,11 @@
+## [1.1.3](https://github.com/ticketplushq/arc-plugin-multi-region/compare/v1.1.2...v1.1.3) (2022-12-25)
+
+
+### Bug Fixes
+
+* an error with skip-buckets ([c3c9aa3](https://github.com/ticketplushq/arc-plugin-multi-region/commit/c3c9aa34c3ca8b0b118565a3ca05a874e73530db))
+
+
 ## [1.1.2](https://github.com/ticketplushq/arc-plugin-multi-region/compare/v1.1.1...v1.1.2) (2022-11-10)
 
 
