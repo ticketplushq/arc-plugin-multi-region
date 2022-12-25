@@ -1,4 +1,4 @@
-# @ticketplushq/arc-multi-region
+# @ticketplushq/arc-plugin-multi-region
 
 [![Build](https://github.com/ticketplushq/arc-plugin-multi-region/actions/workflows/build.yaml/badge.svg)](https://github.com/ticketplushq/arc-plugin-multi-region/actions/workflows/build.yaml)
 
