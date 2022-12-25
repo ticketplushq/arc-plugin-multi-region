@@ -1,5 +1,7 @@
 # @ticketplushq/arc-multi-region
 
+[![Build](https://github.com/ticketplushq/arc-plugin-multi-region/actions/workflows/build.yaml/badge.svg)](https://github.com/ticketplushq/arc-plugin-multi-region/actions/workflows/build.yaml)
+
 Allows to deploy Architect projects on multi regions using [Global Tables](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html).
 
 ## Table of contents
