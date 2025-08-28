@@ -63,24 +63,44 @@ module.exports = {
 
       const buckets = await getBuckets(arc, stage, dryRun)
 
-      buckets.forEach(({ arn, logicalName, physicalName, privacy }) => {
+      buckets.forEach(({ logicalName, physicalName, privacy }) => {
         const bucketPolicyDoc = cfn.Resources[
           `P${privacy.slice(1)}StorageMacroPolicy`
         ].Properties.PolicyDocument.Statement[0]
         const ID = toLogicalID(logicalName)
-        // Delete old Bucket
         const originalResourceName = `${ID}Bucket`
+
+        // Delete old Bucket resource
         delete cfn.Resources[originalResourceName]
+
+        // Create CloudFormation parameter for cross-region bucket reference
+        cfn.Parameters = cfn.Parameters || {}
+        cfn.Parameters[originalResourceName] = {
+          Type: 'String',
+          Default: physicalName,
+          Description: `Cross-region reference to bucket ${logicalName}`
+        }
+
+        // Maintain bucket policy if it's public
+        if (privacy === 'public' && cfn.Resources[`${ID}Policy`]) {
+          cfn.Resources[`${ID}Policy`].Properties.Bucket = { Ref: originalResourceName }
+        }
+
         // Delete old SSM Parameters
         const originalResourceParamName = `${ID}Param`
         delete cfn.Resources[originalResourceParamName]
-        // Delete old Bucket Policies
+
+        // Delete old Bucket Policies from IAM
         bucketPolicyDoc.Resource = bucketPolicyDoc.Resource.filter((resource) => {
           return !resource['Fn::Sub'] || resource['Fn::Sub'][1].bucket.Ref != originalResourceName
         })
 
-        // Add IAM policy for least-priv runtime access
-        bucketPolicyDoc.Resource.push(arn, `${arn}/*`)
+        // Add IAM policy for least-priv runtime access with dynamic reference
+        bucketPolicyDoc.Resource.push(
+          { 'Fn::Sub': [ `arn:aws:s3:::$\{${originalResourceName}}`, {} ] },
+          { 'Fn::Sub': [ `arn:aws:s3:::$\{${originalResourceName}}/*`, {} ] }
+        )
+
         // Add new SSM Parameter for runtime discovery
         let resourceName = `${ID}BucketParam`
         cfn.Resources[resourceName] = {
@@ -96,14 +116,15 @@ module.exports = {
                 }
               ]
             },
-            Value: physicalName
+            Value: { Ref: originalResourceName }
           }
         }
-        // Replace bucket env var on all Lambda functions
+
+        // Replace bucket env var on all Lambda functions with dynamic reference
         Object.keys(cfn.Resources).forEach((k) => {
           let BUCKET = `ARC_STORAGE_PUBLIC_${logicalName.replace(/-/g, '_').toUpperCase()}`
           if (cfn.Resources[k].Type === 'AWS::Serverless::Function') {
-            cfn.Resources[k].Properties.Environment.Variables[BUCKET] = physicalName
+            cfn.Resources[k].Properties.Environment.Variables[BUCKET] = { Ref: originalResourceName }
           }
         })
       })
