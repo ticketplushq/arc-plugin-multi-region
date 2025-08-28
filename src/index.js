@@ -73,17 +73,17 @@ module.exports = {
         // Delete old Bucket resource
         delete cfn.Resources[originalResourceName]
 
+        // Delete bucket policy as well (it references the bucket we're deleting)
+        if (privacy === 'public') {
+          delete cfn.Resources[`${ID}Policy`]
+        }
+
         // Create CloudFormation parameter for cross-region bucket reference
         cfn.Parameters = cfn.Parameters || {}
         cfn.Parameters[originalResourceName] = {
           Type: 'String',
           Default: physicalName,
           Description: `Cross-region reference to bucket ${logicalName}`
-        }
-
-        // Maintain bucket policy if it's public
-        if (privacy === 'public' && cfn.Resources[`${ID}Policy`]) {
-          cfn.Resources[`${ID}Policy`].Properties.Bucket = { Ref: originalResourceName }
         }
 
         // Delete old SSM Parameters
@@ -120,13 +120,8 @@ module.exports = {
           }
         }
 
-        // Replace bucket env var on all Lambda functions with dynamic reference
-        Object.keys(cfn.Resources).forEach((k) => {
-          let BUCKET = `ARC_STORAGE_PUBLIC_${logicalName.replace(/-/g, '_').toUpperCase()}`
-          if (cfn.Resources[k].Type === 'AWS::Serverless::Function') {
-            cfn.Resources[k].Properties.Environment.Variables[BUCKET] = { Ref: originalResourceName }
-          }
-        })
+        // Note: Lambda environment variables already have { Ref: originalResourceName } from storage-public plugin
+        // Since we're creating a parameter with the same name, the references will work correctly
       })
 
       return cfn
